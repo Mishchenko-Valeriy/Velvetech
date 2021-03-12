@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Swashbuckle;
+using Microsoft.OpenApi.Models;
 
 namespace Velvetech
 {
@@ -29,7 +32,19 @@ namespace Velvetech
             services.AddControllers();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(c => {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Accounting for students",
+                    Version = "v1",
+                    Description = "This service implements CRUD operations on entities: " + 
+                        "students, groups, relationships between students and groups. Design Pattern - 'Facade'."
+                });
+                var xfile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xpath = Path.Combine(AppContext.BaseDirectory, xfile);
+                c.IncludeXmlComments(xpath);
+            });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +60,7 @@ namespace Velvetech
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
                 c.RoutePrefix = string.Empty;
             });
+
 
             if (env.IsDevelopment())
             {
