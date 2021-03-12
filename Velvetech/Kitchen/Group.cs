@@ -11,6 +11,7 @@ namespace Velvetech
         [Required(ErrorMessage = "Name - required attribute")]
         [StringLength(25, ErrorMessage = "The group name exceeds the maximum character length of 25")]
         public string Name { get; set; }
+        public int StudentsCount { get; set; }
 
         public List<ValidationResult> Add(string Name) // Добавление новой группы
         {
@@ -64,6 +65,9 @@ namespace Velvetech
             // Если валидация прошла без ошибок, то продолжаем
             DBConnect DbConnect = new DBConnect(true);
 
+            // Сначала - удаляем связи с студентами
+            DbConnect.DBExecute("DELETE Relationship WHERE GroupID=@0", Id);
+
             DbConnect.DBExecute("DELETE Groups WHERE Id=@0", Id);
 
             return validationResult;
@@ -85,21 +89,28 @@ namespace Velvetech
             {
                 group.Id = result.Id;
                 group.Name = result.Name;
+
+                IEnumerable<Relationship> relationshipList = new Relationship().Get(true, result.Id);
+                group.StudentsCount = relationshipList.Count();
             }
 
             return group;
         }
 
-        public IEnumerable<Group> GetList()
+        public IEnumerable<Group> GetList(string name = "")
         {
             DBConnect DbConnect = new DBConnect(true);
             IEnumerable<Group> groupList = Enumerable.Empty<Group>();
 
-            foreach (var row in DbConnect.DBQuery("SELECT * FROM Groups"))
+            // Осуществим фильтр по имени прямо в SQL запросе
+            foreach (var row in DbConnect.DBQuery("SELECT * FROM Groups WHERE Name LIKE N'%" + name +  "%'"))
             {
                 Group Item = new Group();
                 Item.Id = row.Id;
                 Item.Name = row.Name;
+
+                IEnumerable<Relationship> relationshipList = new Relationship().Get(true, row.Id);
+                Item.StudentsCount = relationshipList.Count();
 
                 groupList = groupList.Concat(new[] { Item });
             }

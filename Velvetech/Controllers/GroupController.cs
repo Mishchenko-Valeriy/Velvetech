@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -114,6 +110,25 @@ namespace Velvetech
         {
             Facade facade = new Facade(new Group());
             return facade.GroupGet();
+        }
+
+        // GET api/<Group>
+        /// <summary>
+        /// Выдать список групп по имени
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Group
+        ///     "Группа 1"
+        ///
+        /// </remarks>
+        [Route("/{name?}")]
+        [HttpGet]
+        public IEnumerable<Group> Get(string name = "")
+        {
+            Facade facade = new Facade(new Group());
+            return facade.GroupGet(name);
         }
     }
 }
